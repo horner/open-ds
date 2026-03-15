@@ -160,7 +160,7 @@ public class DisplayEndpoint implements MainJDEC {
             MCP_SERVER = new McpServer(port);
             MCP_SERVER.start();
         } catch (IOException e) {
-            Debug.println("Failed to start MCP server: " + e.getMessage(), EventSeverity.ERROR, false, true);
+            Debug.println("Failed to start MCP server on port " + port + ": " + e.getMessage(), EventSeverity.ERROR, false, true);
         }
     }
 }
