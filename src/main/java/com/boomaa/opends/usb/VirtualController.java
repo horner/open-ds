@@ -9,12 +9,14 @@ import java.util.Map;
  * from keyboard or on-screen button inputs.
  *
  * Layout:
- *   Axes: X (left stick X), Y (left stick Y), Z (right stick X),
- *          RX (right trigger), RY (right stick Y), RZ (left trigger)
+ *   Axes:    X (left stick X), Y (left stick Y), Z (right stick X),
+ *            RX (right trigger), RY (right stick Y), RZ (left trigger)
  *   Buttons: 0-9 (A, B, X, Y, LB, RB, Back, Start, L3, R3)
+ *   POV hat: index 0 — degrees (0=up, 90=right, 180=down, 270=left, -1=centered)
  */
 public class VirtualController extends Controller<VirtualComponent> {
     private static final int NUM_BUTTONS = 10;
+    private int povValue = -1;
     private static final int NUM_AXES = 6;
     private final Map<Component.Identifier, VirtualComponent> lookup = new LinkedHashMap<>();
 
@@ -53,6 +55,20 @@ public class VirtualController extends Controller<VirtualComponent> {
         if (comp != null) {
             comp.setValue(value);
         }
+    }
+
+    public void setPov(int degrees) {
+        this.povValue = degrees;
+    }
+
+    @Override
+    public int getPovCount() {
+        return 1;
+    }
+
+    @Override
+    public int[] getPovValues() {
+        return new int[]{ povValue };
     }
 
     public void setButton(int index, boolean pressed) {

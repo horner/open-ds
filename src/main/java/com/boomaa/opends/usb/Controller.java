@@ -35,6 +35,14 @@ public abstract class Controller<T extends Component> {
         return ++numAxes;
     }
 
+    public int getPovCount() {
+        return 0;
+    }
+
+    public int[] getPovValues() {
+        return new int[0];
+    }
+
     public void remove() {
         queueRemove = true;
     }

@@ -192,7 +192,7 @@ public class MainFrame implements MainJDEC {
         FRAME.add(TAB);
         Debug.println("Swing tabs added to frame");
 
-        Dimension dimension = new Dimension(560, 350);
+        Dimension dimension = new Dimension(560, 390);
         FrameBase.applyNonWindowsScaling(dimension);
         FRAME.setPreferredSize(dimension);
 

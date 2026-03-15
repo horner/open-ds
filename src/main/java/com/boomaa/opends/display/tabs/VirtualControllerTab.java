@@ -42,6 +42,7 @@ import javax.swing.border.TitledBorder;
  *   1-4               -> A, B, X, Y buttons
  *   5-6               -> LB, RB bumpers
  *   7-8               -> Back, Start
+ *   T / G / F / H    -> D-Pad Up / Down / Left / Right
  *
  * On-screen buttons mirror the same inputs with click/hold.
  */
@@ -56,6 +57,9 @@ public class VirtualControllerTab extends TabBase {
     private boolean rightUp, rightDown, rightLeft, rightRight;
     private boolean triggerLeft, triggerRight;
 
+    // D-pad directional state (POV hat)
+    private boolean dpadUp, dpadDown, dpadLeft, dpadRight;
+
     // UI labels for live axis values
     private JLabel lblLX, lblLY, lblRX, lblRY, lblLT, lblRT;
 
@@ -63,7 +67,7 @@ public class VirtualControllerTab extends TabBase {
     private Map<Integer, JButton> keyToButton;
 
     public VirtualControllerTab() {
-        super(new Dimension(520, 275));
+        super(new Dimension(520, 360));
     }
 
     @Override
@@ -158,7 +162,12 @@ public class VirtualControllerTab extends TabBase {
             bBase.clone().setPos(i % 4, i / 4, 1, 1).build(btn);
         }
 
-        base.clone().setPos(2, 4, 2, 1).build(buttonPanel);
+        // Buttons panel spans rows 4-5 on the right side
+        base.clone().setPos(2, 4, 2, 2).build(buttonPanel);
+
+        // --- D-Pad ---
+        JPanel dpadPanel = createDpadPanel();
+        base.clone().setPos(0, 5, 2, 1).build(dpadPanel);
 
         // --- Keyboard bindings ---
         setupKeyBindings();
@@ -209,17 +218,16 @@ public class VirtualControllerTab extends TabBase {
                                 () -> { rightRight = false; updateRightStick(); });
         }
 
-        // Layout: arrow cross + value labels
-        //       [up]
-        // [left]     [right]
-        //      [down]
+        // Layout:
+        //        [up]
+        // [left][down][right]
         //   X: ...   Y: ...
         gb.clone().setPos(1, 0, 1, 1).build(upBtn);
         gb.clone().setPos(0, 1, 1, 1).build(leftBtn);
+        gb.clone().setPos(1, 1, 1, 1).build(downBtn);
         gb.clone().setPos(2, 1, 1, 1).build(rightBtn);
-        gb.clone().setPos(1, 2, 1, 1).build(downBtn);
-        gb.clone().setPos(0, 3, 1, 1).setFill(GridBagConstraints.NONE).build(xLabel);
-        gb.clone().setPos(2, 3, 1, 1).setFill(GridBagConstraints.NONE).build(yLabel);
+        gb.clone().setPos(0, 2, 1, 1).setFill(GridBagConstraints.NONE).build(xLabel);
+        gb.clone().setPos(2, 2, 1, 1).setFill(GridBagConstraints.NONE).build(yLabel);
 
         // Register arrow buttons for keyboard highlighting
         if (isLeft) {
@@ -237,6 +245,50 @@ public class VirtualControllerTab extends TabBase {
             keyToButton.put(KeyEvent.VK_J, leftBtn);
             keyToButton.put(KeyEvent.VK_L, rightBtn);
         }
+
+        return panel;
+    }
+
+    private JPanel createDpadPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createEtchedBorder(), "D-Pad (T/G/F/H)",
+            TitledBorder.CENTER, TitledBorder.TOP));
+
+        GBCPanelBuilder gb = new GBCPanelBuilder(panel)
+            .setInsets(new Insets(2, 2, 2, 2))
+            .setFill(GridBagConstraints.BOTH);
+
+        JButton upBtn    = makeHoldButton("\u25B2");
+        JButton downBtn  = makeHoldButton("\u25BC");
+        JButton leftBtn  = makeHoldButton("\u25C0");
+        JButton rightBtn = makeHoldButton("\u25B6");
+
+        setupHold(upBtn,
+            () -> { dpadUp = true;    updateDpad(); },
+            () -> { dpadUp = false;   updateDpad(); });
+        setupHold(downBtn,
+            () -> { dpadDown = true;  updateDpad(); },
+            () -> { dpadDown = false; updateDpad(); });
+        setupHold(leftBtn,
+            () -> { dpadLeft = true;  updateDpad(); },
+            () -> { dpadLeft = false; updateDpad(); });
+        setupHold(rightBtn,
+            () -> { dpadRight = true;  updateDpad(); },
+            () -> { dpadRight = false; updateDpad(); });
+
+        keyToButton.put(KeyEvent.VK_T, upBtn);
+        keyToButton.put(KeyEvent.VK_G, downBtn);
+        keyToButton.put(KeyEvent.VK_F, leftBtn);
+        keyToButton.put(KeyEvent.VK_H, rightBtn);
+
+        // Layout:
+        //        [up]
+        // [left][down][right]
+        gb.clone().setPos(1, 0, 1, 1).build(upBtn);
+        gb.clone().setPos(0, 1, 1, 1).build(leftBtn);
+        gb.clone().setPos(1, 1, 1, 1).build(downBtn);
+        gb.clone().setPos(2, 1, 1, 1).build(rightBtn);
 
         return panel;
     }
@@ -283,6 +335,20 @@ public class VirtualControllerTab extends TabBase {
                 () -> virtualCtrl.setButton(idx, true),
                 () -> virtualCtrl.setButton(idx, false));
         }
+
+        // D-Pad POV hat: T (up), G (down), F (left), H (right)
+        bindKey(KeyEvent.VK_T,
+            () -> { dpadUp = true;    updateDpad(); },
+            () -> { dpadUp = false;   updateDpad(); });
+        bindKey(KeyEvent.VK_G,
+            () -> { dpadDown = true;  updateDpad(); },
+            () -> { dpadDown = false; updateDpad(); });
+        bindKey(KeyEvent.VK_F,
+            () -> { dpadLeft = true;  updateDpad(); },
+            () -> { dpadLeft = false; updateDpad(); });
+        bindKey(KeyEvent.VK_H,
+            () -> { dpadRight = true;  updateDpad(); },
+            () -> { dpadRight = false; updateDpad(); });
     }
 
     private void bindKey(int keyCode, Runnable onPress, Runnable onRelease) {
@@ -365,6 +431,20 @@ public class VirtualControllerTab extends TabBase {
         if (lblRY != null) {
             lblRY.setText(String.format("Y: %.2f", y));
         }
+    }
+
+    private void updateDpad() {
+        int angle;
+        if (dpadUp && dpadRight)        angle = 45;
+        else if (dpadDown && dpadRight) angle = 135;
+        else if (dpadDown && dpadLeft)  angle = 225;
+        else if (dpadUp && dpadLeft)    angle = 315;
+        else if (dpadUp)                angle = 0;
+        else if (dpadRight)             angle = 90;
+        else if (dpadDown)              angle = 180;
+        else if (dpadLeft)              angle = 270;
+        else                            angle = -1;
+        virtualCtrl.setPov(angle);
     }
 
     private void updateTriggers() {

@@ -128,6 +128,14 @@ public class HIDDevice {
         return disabled;
     }
 
+    public int getPovCount() {
+        return ctrl.getPovCount();
+    }
+
+    public int[] getPovValues() {
+        return ctrl.getPovValues();
+    }
+
     public boolean needsRemove() {
         return ctrl.needsRemove();
     }

@@ -57,8 +57,12 @@ public enum SendTag {
                         }
                     }
                     builder.addInt(dev.usedNumButtons())
-                            .addBytes(NumberUtils.packBools(dev.getButtons()))
-                            .addInt(0); //povCount
+                            .addBytes(NumberUtils.packBools(dev.getButtons()));
+                    int povCount = dev.getPovCount();
+                    builder.addInt(povCount);
+                    for (int pov : dev.getPovValues()) {
+                        builder.addBytes(NumberUtils.intToBytePair(pov));
+                    }
                 } else {
                     // Placeholder values for js index padding
                     builder.addInt(0).addInt(0).addInt(0); //num axes, btns, povs
@@ -117,7 +121,7 @@ public enum SendTag {
                         builder.addInt(i % 3); //axesTypes
                     }
                     builder.addInt(dev.usedNumButtons())
-                            .addInt(0); //povCount
+                            .addInt(dev.getPovCount()); //povCount
                 } else {
                     builder.addInt(idx)
                             .addInt(0) //isXbox
